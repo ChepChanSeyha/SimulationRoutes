@@ -1,6 +1,7 @@
 package com.example.simulationroute.ui.home
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,6 +19,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
 import com.example.simulationroute.ui.pin.PinFragment
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.fragment_pin.*
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -32,7 +34,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_home, container, false)
+
+        val view = inflater.inflate(R.layout.fragment_home, container, false)
+
+        return view
     }
 
     @SuppressLint("MissingPermission")
@@ -49,15 +54,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
 //        startSimulation.setOnClickListener {
-//            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
 //        }
-//
 
         addDestination.setOnClickListener {
-            val t = this.fragmentManager!!.beginTransaction()
-            val mFrag = PinFragment()
-            t.replace(R.id.nav_host_fragment, mFrag)
-            t.commit()
+            val intent = Intent(context, PinFragment::class.java)
+            startActivity(intent)
         }
 
     }

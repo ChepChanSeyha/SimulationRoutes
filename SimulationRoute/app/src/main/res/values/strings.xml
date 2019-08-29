@@ -19,4 +19,6 @@
     <string name="add">Add</string>
     <string name="search_place">search_place</string>
     <string name="start_simulation">Start Simulation</string>
+    <string name="add_destination">Add Destination</string>
+    <string name="todo">TODO</string>
 </resources>

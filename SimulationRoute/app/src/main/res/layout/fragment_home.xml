@@ -12,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/start_simulation"
+        android:padding="10dp"
         android:layout_gravity="start|bottom"
         android:background="@color/colorAccent"/>
 
@@ -19,7 +20,8 @@
         android:id="@+id/addDestination"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start_simulation"
+        android:text="@string/add_destination"
+        android:padding="10dp"
         android:layout_gravity="end|bottom"
         android:background="@color/colorAccent"/>
 

@@ -14,7 +14,8 @@
         android:layout_height="70dp"
         android:layout_gravity="center"
         android:layout_marginBottom="20dp"
-        android:src="@drawable/ic_pin"/>
+        android:src="@drawable/ic_pin"
+        android:contentDescription="@string/todo" />
 
     <TextView
         android:id="@+id/currentPlaceTV"
