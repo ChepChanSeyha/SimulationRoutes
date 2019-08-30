@@ -1,19 +1,19 @@
-package com.example.simulationroute.ui.pin
+package com.example.simulationroute
 
+import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.simulationroute.R
-import com.example.simulationroute.ui.home.HomeFragment
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import kotlinx.android.synthetic.main.fragment_pin.*
+import kotlinx.android.synthetic.main.activity_pin.*
 
-class PinFragment : AppCompatActivity(),
+
+class PinActivity : AppCompatActivity(),
     GoogleMap.OnCameraMoveStartedListener,
     GoogleMap.OnCameraMoveListener,
     GoogleMap.OnCameraMoveCanceledListener,
@@ -26,11 +26,12 @@ class PinFragment : AppCompatActivity(),
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private var marker: Marker? = null
+    private lateinit var latLng: LatLng
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_pin)
+        setContentView(R.layout.activity_pin)
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.mapPin) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -41,12 +42,7 @@ class PinFragment : AppCompatActivity(),
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
-        textResult = findViewById(R.id.currentPlaceTV)
 
-        add.setOnClickListener {
-            val fragmentManager = supportFragmentManager.beginTransaction()
-            fragmentManager.replace(R.id.nav_home, HomeFragment()).commit()
-        }
     }
 
     private fun buildLocationCallback() {
@@ -118,10 +114,16 @@ class PinFragment : AppCompatActivity(),
     }
 
     override fun onCameraIdle() {
-        val latLng = mMap!!.cameraPosition.target
+        textResult = findViewById(R.id.currentPlaceTV)
+        latLng = mMap!!.cameraPosition.target
         textResult?.text  = latLng.toString()
 
-
+        add.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("lat", latLng.latitude)
+            intent.putExtra("lng", latLng.longitude)
+            startActivity(intent)
+        }
     }
 
 }

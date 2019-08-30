@@ -2,12 +2,18 @@ package com.example.simulationroute.ui.home
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.myapplication.Data.LineResponse
+import com.example.myapplication.Data.RetrofitClient
+import com.example.simulationroute.MainActivity
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,9 +23,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
-import com.example.simulationroute.ui.pin.PinFragment
+import com.example.simulationroute.PinActivity
+import com.google.android.gms.maps.model.PolylineOptions
 import kotlinx.android.synthetic.main.fragment_home.*
-import kotlinx.android.synthetic.main.fragment_pin.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -36,7 +45,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-
         return view
     }
 
@@ -57,7 +65,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 //        }
 
         addDestination.setOnClickListener {
-            val intent = Intent(context, PinFragment::class.java)
+            val intent = Intent(context, PinActivity::class.java)
             startActivity(intent)
         }
 
@@ -91,15 +99,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     }
 
-    @SuppressLint("MissingPermission")
     private fun getLastKnownLocation() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
-                if (location != null) setMarker(location)
+                if (location != null) {
+                    setMarker(location)
+                }
             }
     }
 
-    @SuppressLint("MissingPermission")
     private fun setMarker(location: Location) {
         val lateLong1 = LatLng(location.latitude, location.longitude)
 

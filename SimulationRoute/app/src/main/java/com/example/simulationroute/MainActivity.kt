@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -18,6 +19,7 @@ import android.view.Menu
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +33,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        val lat = intent.getDoubleExtra("lat", 0.0)
+        val lng = intent.getDoubleExtra("lng", 0.0)
+        Log.d("gg", "$lat and $lng")
+        
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             // Show an explanation to the user *asynchronously* -- don't block
@@ -98,10 +105,9 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             168 -> {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) return
+                // permission denied, boo! Disable the
+                // functionality that depends on this permission.
                 return
                 // permission was granted, yay! Do the
                 // contacts-related task you need to do.
@@ -125,4 +131,5 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
+
 }
