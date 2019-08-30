@@ -119,4 +119,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    //static function
+
 }
