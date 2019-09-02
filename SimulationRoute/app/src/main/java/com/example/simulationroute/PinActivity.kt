@@ -1,5 +1,6 @@
 package com.example.simulationroute
 
+import android.app.Activity
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
@@ -119,10 +120,11 @@ class PinActivity : AppCompatActivity(),
         textResult?.text  = latLng.toString()
 
         add.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent()
             intent.putExtra("lat", latLng.latitude)
             intent.putExtra("lng", latLng.longitude)
-            startActivity(intent)
+            setResult(Activity.RESULT_OK, intent)
+            finish()
         }
     }
 

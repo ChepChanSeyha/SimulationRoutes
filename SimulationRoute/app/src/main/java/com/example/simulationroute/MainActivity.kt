@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -20,7 +19,11 @@ import android.view.Menu
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
+import com.example.simulationroute.ui.home.HomeFragment
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,10 +38,9 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        val lat = intent.getDoubleExtra("lat", 0.0)
-        val lng = intent.getDoubleExtra("lng", 0.0)
-        Log.d("gg", "$lat and $lng")
-
+//        val lat = intent.getDoubleExtra("lat", 0.0)
+//        val lng = intent.getDoubleExtra("lng", 0.0)
+//        HomeFragment.newInstance(lat, lng)
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             // Show an explanation to the user *asynchronously* -- don't block
@@ -134,7 +136,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        // call static to pass data
+        super.onActivityResult(requestCode, resultCode, data)
+
+
+//        if (requestCode == 123) {
+            if (resultCode == Activity.RESULT_OK) {
+                val lat = intent.getDoubleExtra("lat", 0.0)
+                val lng = intent.getDoubleExtra("lng", 0.0)
+//                HomeFragment.newInstance(lat, lng)
+            }
+//        }
     }
 
 }

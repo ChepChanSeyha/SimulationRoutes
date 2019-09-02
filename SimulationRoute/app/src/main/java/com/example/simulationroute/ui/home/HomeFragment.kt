@@ -1,19 +1,14 @@
 package com.example.simulationroute.ui.home
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
-import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.myapplication.Data.LineResponse
-import com.example.myapplication.Data.RetrofitClient
-import com.example.simulationroute.MainActivity
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -24,11 +19,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
-import com.google.android.gms.maps.model.PolylineOptions
 import kotlinx.android.synthetic.main.fragment_home.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -66,7 +57,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         addDestination.setOnClickListener {
             val intent = Intent(context, PinActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, 123)
         }
 
     }
@@ -119,6 +110,23 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    //static function
+//    //static function
+//    companion object {
+//
+//        fun newInstance(newLat: Double, newLng: Double) {
+//            val fragment = HomeFragment()
+//
+//            val bundle = Bundle().apply {
+//                putDouble("lat", newLat)
+//                putDouble("lng", newLng)
+//            }
+//
+//            fragment.arguments = bundle
+//        }
+//    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+    }
 
 }
