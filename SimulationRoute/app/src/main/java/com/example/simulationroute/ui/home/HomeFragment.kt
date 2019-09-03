@@ -3,12 +3,17 @@ package com.example.simulationroute.ui.home
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.myapplication.Data.LineResponse
+import com.example.myapplication.Data.RetrofitClient
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -19,7 +24,12 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
+import com.google.android.gms.maps.model.PolylineOptions
+import kotlinx.android.synthetic.main.activity_pin.*
 import kotlinx.android.synthetic.main.fragment_home.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -29,14 +39,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private var marker: Marker? = null
+    private var newLat = Double.MAX_VALUE
+    private var newLng = Double.MAX_VALUE
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
-        val view = inflater.inflate(R.layout.fragment_home, container, false)
-        return view
+        return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
     @SuppressLint("MissingPermission")
@@ -51,9 +62,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         fusedLocationClient.removeLocationUpdates(locationCallback)
-
-//        startSimulation.setOnClickListener {
-//        }
 
         addDestination.setOnClickListener {
             val intent = Intent(context, PinActivity::class.java)
@@ -71,11 +79,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
-//                for (location in locationResult.locations){
-                // Update UI with location data
-                // ...
-                setMarker(locationResult.lastLocation)
-//                }
             }
         }
     }
@@ -83,50 +86,70 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        getLastKnownLocation()
-
         mMap.uiSettings.isCompassEnabled = true
         mMap.isMyLocationEnabled = true
 
+        getLastKnownLocation()
     }
 
     private fun getLastKnownLocation() {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
+        fusedLocationClient.lastLocation.addOnSuccessListener { location : Location? ->
                 if (location != null) {
-                    setMarker(location)
+                    val currentLocation = LatLng(location.latitude, location.longitude)
+                    marker = mMap.addMarker(MarkerOptions().position(currentLocation).title("Current Location"))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
                 }
+
+            val startLat = location!!.latitude
+            val startLng = location.longitude
+
+                if (newLat != Double.MAX_VALUE) {
+                    val client = RetrofitClient()
+                    val call = client.getService().getRouteResponse(
+                        "api/route?start_lng=$startLng&start_lat=$startLat&end_lng=$newLng&end_lat=$newLat&route=osrm&scan=false"
+                    )
+
+                    call.enqueue(object : Callback<LineResponse> {
+                        override fun onFailure(call: Call<LineResponse>, t: Throwable) {
+                            Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
+                        }
+
+                        override fun onResponse(call: Call<LineResponse>, myResponse: Response<LineResponse>) {
+                            myResponse.body()?.let {
+                                Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
+                            }
+
+                            // Declare polyline object and set up color and width
+                            val polylineOptions = PolylineOptions()
+                            polylineOptions.color(Color.RED)
+                            polylineOptions.width(5f)
+
+                            val gg = myResponse.body()?.route!![0].coordinates
+
+                            if (gg != null) for (i in 0 until gg.size) {
+                                val lat = gg[i][0]
+                                val lng = gg[i][1]
+                                polylineOptions.add(LatLng(lat, lng))
+                            }
+
+                            mMap.addPolyline(polylineOptions)
+
+                        }
+                    })
+                }
+
             }
     }
 
-    private fun setMarker(location: Location) {
-        val lateLong1 = LatLng(location.latitude, location.longitude)
-
-        if(marker == null){
-            val markerOptions = MarkerOptions().position(lateLong1)
-            marker = mMap.addMarker(markerOptions.title("Current Location"))
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lateLong1, 13f))
-
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 123) {
+            if (resultCode == Activity.RESULT_OK) {
+                newLat = data.getDoubleExtra("lat", 0.0)
+                newLng = data.getDoubleExtra("lng", 0.0)
+                Log.d("gg", "$newLat and $newLng")
+            }
         }
-    }
-
-//    //static function
-//    companion object {
-//
-//        fun newInstance(newLat: Double, newLng: Double) {
-//            val fragment = HomeFragment()
-//
-//            val bundle = Bundle().apply {
-//                putDouble("lat", newLat)
-//                putDouble("lng", newLng)
-//            }
-//
-//            fragment.arguments = bundle
-//        }
-//    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
     }
 
 }

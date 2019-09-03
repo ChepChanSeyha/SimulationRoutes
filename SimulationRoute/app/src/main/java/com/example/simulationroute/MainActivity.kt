@@ -38,10 +38,6 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-//        val lat = intent.getDoubleExtra("lat", 0.0)
-//        val lng = intent.getDoubleExtra("lng", 0.0)
-//        HomeFragment.newInstance(lat, lng)
-
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             // Show an explanation to the user *asynchronously* -- don't block
             // this thread waiting for the user's response! After the user
@@ -135,17 +131,12 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-
-//        if (requestCode == 123) {
-            if (resultCode == Activity.RESULT_OK) {
-                val lat = intent.getDoubleExtra("lat", 0.0)
-                val lng = intent.getDoubleExtra("lng", 0.0)
-//                HomeFragment.newInstance(lat, lng)
-            }
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (resultCode == Activity.RESULT_OK) {
+//            val lat = intent.getDoubleExtra("lat", 0.0)
+//            val lng = intent.getDoubleExtra("lng", 0.0)
 //        }
-    }
+//    }
 
 }

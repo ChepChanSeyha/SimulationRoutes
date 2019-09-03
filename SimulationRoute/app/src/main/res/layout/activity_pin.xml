@@ -27,7 +27,6 @@
         android:layout_marginBottom="30dp"
         android:gravity="center"
         android:padding="10dp"
-        android:text="@string/search_place"
         android:textStyle="bold"
         android:textColor="@color/colorAccent"
         android:textSize="20sp" />
