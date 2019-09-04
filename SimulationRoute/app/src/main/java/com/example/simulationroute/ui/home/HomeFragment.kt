@@ -39,8 +39,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private var marker: Marker? = null
-    private var newLat = Double.MAX_VALUE
-    private var newLng = Double.MAX_VALUE
+    private var newLat: Double? = null
+    private var newLng: Double? = null
+    private var startLat: Double? = null
+    private var startLng: Double? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -94,19 +96,30 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun getLastKnownLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location : Location? ->
-                if (location != null) {
-                    val currentLocation = LatLng(location.latitude, location.longitude)
-                    marker = mMap.addMarker(MarkerOptions().position(currentLocation).title("Current Location"))
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
-                }
+            if (location != null) {
+                val currentLocation = LatLng(location.latitude, location.longitude)
+                marker = mMap.addMarker(MarkerOptions().position(currentLocation).title("Current Location"))
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
+            }
 
-            val startLat = location!!.latitude
-            val startLng = location.longitude
+            startLat = location!!.latitude
+            startLng = location.longitude
 
-                if (newLat != Double.MAX_VALUE) {
+            }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 123) {
+            if (resultCode == Activity.RESULT_OK) {
+
+                newLat = data.getDoubleExtra("lat", 0.0)
+                newLng = data.getDoubleExtra("lng", 0.0)
+
+                if (newLat != null && newLng != null) {
                     val client = RetrofitClient()
                     val call = client.getService().getRouteResponse(
-                        "api/route?start_lng=$startLng&start_lat=$startLat&end_lng=$newLng&end_lat=$newLat&route=osrm&scan=false"
+                        "api/route?start_lng=$startLng&start_lat=$startLat&end_lng=$newLng&end_lat=$newLat&route=osrm"
                     )
 
                     call.enqueue(object : Callback<LineResponse> {
@@ -122,7 +135,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             // Declare polyline object and set up color and width
                             val polylineOptions = PolylineOptions()
                             polylineOptions.color(Color.RED)
-                            polylineOptions.width(5f)
+                            polylineOptions.width(10f)
 
                             val gg = myResponse.body()?.route!![0].coordinates
 
@@ -137,17 +150,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                         }
                     })
                 }
-
-            }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 123) {
-            if (resultCode == Activity.RESULT_OK) {
-                newLat = data.getDoubleExtra("lat", 0.0)
-                newLng = data.getDoubleExtra("lng", 0.0)
-                Log.d("gg", "$newLat and $newLng")
             }
         }
     }
