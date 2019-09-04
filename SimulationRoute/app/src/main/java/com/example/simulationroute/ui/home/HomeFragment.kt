@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +24,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
 import com.google.android.gms.maps.model.PolylineOptions
-import kotlinx.android.synthetic.main.activity_pin.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -39,10 +37,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private var marker: Marker? = null
+
     private var newLat: Double? = null
     private var newLng: Double? = null
     private var startLat: Double? = null
     private var startLng: Double? = null
+    var varLat: Double = 0.0
+    var varLng: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -117,41 +118,54 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 newLng = data.getDoubleExtra("lng", 0.0)
 
                 if (newLat != null && newLng != null) {
-                    val client = RetrofitClient()
-                    val call = client.getService().getRouteResponse(
-                        "api/route?start_lng=$startLng&start_lat=$startLat&end_lng=$newLng&end_lat=$newLat&route=osrm"
-                    )
-
-                    call.enqueue(object : Callback<LineResponse> {
-                        override fun onFailure(call: Call<LineResponse>, t: Throwable) {
-                            Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
-                        }
-
-                        override fun onResponse(call: Call<LineResponse>, myResponse: Response<LineResponse>) {
-                            myResponse.body()?.let {
-                                Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
-                            }
-
-                            // Declare polyline object and set up color and width
-                            val polylineOptions = PolylineOptions()
-                            polylineOptions.color(Color.RED)
-                            polylineOptions.width(10f)
-
-                            val gg = myResponse.body()?.route!![0].coordinates
-
-                            if (gg != null) for (i in 0 until gg.size) {
-                                val lat = gg[i][0]
-                                val lng = gg[i][1]
-                                polylineOptions.add(LatLng(lat, lng))
-                            }
-
-                            mMap.addPolyline(polylineOptions)
-
-                        }
-                    })
+                    if (varLat != 0.0 && varLng != 0.0) {
+                        startLng = varLng
+                        startLat = varLat
+                        drawRoute(startLat!!, startLng!!)
+                    }
+                    else{
+                        drawRoute(startLat!!, startLng!!)
+                    }
                 }
             }
         }
+    }
+
+    private fun drawRoute(lat: Double, lng: Double) {
+        val client = RetrofitClient()
+        val call = client.getService().getRouteResponse(
+            "api/route?start_lng=$lng&start_lat=$lat&end_lng=$newLng&end_lat=$newLat&route=osrm"
+        )
+        call.enqueue(object : Callback<LineResponse> {
+            override fun onFailure(call: Call<LineResponse>, t: Throwable) {
+                Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onResponse(call: Call<LineResponse>, myResponse: Response<LineResponse>) {
+                myResponse.body()?.let {
+                    Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
+                }
+
+                // Declare polyline object and set up color and width
+                val polylineOptions = PolylineOptions()
+                polylineOptions.color(Color.RED)
+                polylineOptions.width(10f)
+
+                val gg = myResponse.body()?.route!![0].coordinates
+
+                if (gg != null)
+                    for (i in 0 until gg.size) {
+                        val lat = gg[i][0]
+                        val lng = gg[i][1]
+                        varLat = lat
+                        varLng = lng
+                        polylineOptions.add(LatLng(lat, lng))
+                    }
+
+                mMap.addPolyline(polylineOptions)
+
+            }
+        })
     }
 
 }
