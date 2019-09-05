@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,8 +43,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var newLng: Double? = null
     private var startLat: Double? = null
     private var startLng: Double? = null
-    var varLat: Double = 0.0
-    var varLng: Double = 0.0
+    private var varLat: Double? = null
+    private var varLng: Double? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -86,7 +87,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.isCompassEnabled = true
@@ -117,8 +117,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 newLat = data.getDoubleExtra("lat", 0.0)
                 newLng = data.getDoubleExtra("lng", 0.0)
 
+                marker = mMap.addMarker(MarkerOptions().position(LatLng(newLat!!, newLng!!)).title("Destination"))
+
                 if (newLat != null && newLng != null) {
-                    if (varLat != 0.0 && varLng != 0.0) {
+                    if (varLat != null && varLng != null) {
                         startLng = varLng
                         startLat = varLat
                         drawRoute(startLat!!, startLng!!)
@@ -136,6 +138,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         val call = client.getService().getRouteResponse(
             "api/route?start_lng=$lng&start_lat=$lat&end_lng=$newLng&end_lat=$newLat&route=osrm"
         )
+        varLat = newLat!!
+        varLng = newLng!!
+
         call.enqueue(object : Callback<LineResponse> {
             override fun onFailure(call: Call<LineResponse>, t: Throwable) {
                 Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
@@ -143,7 +148,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
             override fun onResponse(call: Call<LineResponse>, myResponse: Response<LineResponse>) {
                 myResponse.body()?.let {
-                    Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
+//                    Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
                 }
 
                 // Declare polyline object and set up color and width
@@ -155,11 +160,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 if (gg != null)
                     for (i in 0 until gg.size) {
-                        val lat = gg[i][0]
-                        val lng = gg[i][1]
-                        varLat = lat
-                        varLng = lng
-                        polylineOptions.add(LatLng(lat, lng))
+                        polylineOptions.add(LatLng(gg[i][0], gg[i][1]))
                     }
 
                 mMap.addPolyline(polylineOptions)

@@ -131,12 +131,4 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        if (resultCode == Activity.RESULT_OK) {
-//            val lat = intent.getDoubleExtra("lat", 0.0)
-//            val lng = intent.getDoubleExtra("lng", 0.0)
-//        }
-//    }
-
 }
