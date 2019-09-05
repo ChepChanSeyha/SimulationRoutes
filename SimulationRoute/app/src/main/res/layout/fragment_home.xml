@@ -1,28 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/map"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     tools:context=".ui.home.HomeFragment"
-    android:name="com.google.android.gms.maps.SupportMapFragment">
+    android:orientation="vertical">
+
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="635dp"
+        android:layout_weight="1"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <Button
         android:id="@+id/startSimulation"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/start_simulation"
-        android:padding="10dp"
-        android:layout_gravity="start|bottom"
-        android:background="@color/colorAccent"/>
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:padding="10dp"/>
 
     <Button
         android:id="@+id/addDestination"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/add_destination"
-        android:padding="10dp"
-        android:layout_gravity="end|bottom"
-        android:background="@color/colorAccent"/>
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:padding="10dp"/>
 
-</fragment>
+</LinearLayout>

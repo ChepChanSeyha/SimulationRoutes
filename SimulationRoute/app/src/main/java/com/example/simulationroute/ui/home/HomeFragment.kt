@@ -2,15 +2,18 @@ package com.example.simulationroute.ui.home
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.myapplication.Data.LineResponse
 import com.example.myapplication.Data.RetrofitClient
@@ -19,16 +22,16 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -67,6 +70,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
+        startSimulation.setOnClickListener {
+
+        }
+
         addDestination.setOnClickListener {
             val intent = Intent(context, PinActivity::class.java)
             startActivityForResult(intent, 123)
@@ -96,17 +103,21 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun getLastKnownLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location : Location? ->
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 val currentLocation = LatLng(location.latitude, location.longitude)
-                marker = mMap.addMarker(MarkerOptions().position(currentLocation).title("Current Location"))
+
+                // custom marker for current location with iconMotor
+                marker = mMap.addMarker(MarkerOptions().position(currentLocation).icon(bitmapDescriptorFromVector(
+                    context!!, R.drawable.ic_no_box
+                )))
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
             }
 
             startLat = location!!.latitude
             startLng = location.longitude
 
-            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -117,15 +128,22 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 newLat = data.getDoubleExtra("lat", 0.0)
                 newLng = data.getDoubleExtra("lng", 0.0)
 
-                marker = mMap.addMarker(MarkerOptions().position(LatLng(newLat!!, newLng!!)).title("Destination"))
+                marker = mMap.addMarker(
+                    MarkerOptions().position(
+                        LatLng(
+                            newLat!!,
+                            newLng!!
+                        )
+                    ).title("Destination")
+                )
 
                 if (newLat != null && newLng != null) {
                     if (varLat != null && varLng != null) {
                         startLng = varLng
                         startLat = varLat
+
                         drawRoute(startLat!!, startLng!!)
-                    }
-                    else{
+                    } else {
                         drawRoute(startLat!!, startLng!!)
                     }
                 }
@@ -138,6 +156,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         val call = client.getService().getRouteResponse(
             "api/route?start_lng=$lng&start_lat=$lat&end_lng=$newLng&end_lat=$newLat&route=osrm"
         )
+
         varLat = newLat!!
         varLng = newLng!!
 
@@ -153,7 +172,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 // Declare polyline object and set up color and width
                 val polylineOptions = PolylineOptions()
-                polylineOptions.color(Color.RED)
+                polylineOptions.color(Color.BLUE)
                 polylineOptions.width(10f)
 
                 val gg = myResponse.body()?.route!![0].coordinates
@@ -167,6 +186,36 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
             }
         })
+    }
+
+    private fun bearingBetweenLocations(latLng1: LatLng, latLng2: LatLng): Double {
+
+        val PI = 3.14159
+        val lat1 = latLng1.latitude * PI / 180
+        val long1 = latLng1.longitude * PI / 180
+        val lat2 = latLng2.latitude * PI / 180
+        val long2 = latLng2.longitude * PI / 180
+
+        val dLon = long2 - long1
+
+        val y = sin(dLon) * cos(lat2)
+        val x = cos(lat1) * sin(lat2) - (sin(lat1) * cos(lat2) * cos(dLon))
+
+        var bearing = atan2(y, x)
+
+        bearing = Math.toDegrees(bearing)
+        bearing = (bearing + 360) % 360
+
+        return bearing
+    }
+
+    private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
+        return ContextCompat.getDrawable(context, vectorResId)?.run {
+            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
+            val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
+            draw(Canvas(bitmap))
+            BitmapDescriptorFactory.fromBitmap(bitmap)
+        }
     }
 
 }

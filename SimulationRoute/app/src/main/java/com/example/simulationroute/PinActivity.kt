@@ -107,11 +107,11 @@ class PinActivity : AppCompatActivity(),
     }
 
     override fun onCameraMove() {
-        Toast.makeText(this, "The camera is moving.", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "The camera is moving.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onCameraMoveCanceled() {
-        Toast.makeText(this, "Camera movement canceled.", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "Camera movement canceled.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onCameraIdle() {

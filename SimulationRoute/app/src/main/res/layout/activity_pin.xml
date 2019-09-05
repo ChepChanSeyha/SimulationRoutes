@@ -28,16 +28,15 @@
         android:gravity="center"
         android:padding="10dp"
         android:textStyle="bold"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/colorPrimary"
         android:textSize="20sp" />
 
     <Button
         android:id="@+id/add"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorAccent"
         android:text="@string/add"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorPrimary"
         android:layout_gravity="end|bottom"
         android:textStyle="bold" />
 </fragment>
