@@ -96,14 +96,14 @@ class PinActivity : AppCompatActivity(),
     }
 
     override fun onCameraMoveStarted(reason: Int) {
-        when (reason) {
-            GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE ->
-                Toast.makeText(this, "The user gestured on the map.", Toast.LENGTH_SHORT).show()
-            GoogleMap.OnCameraMoveStartedListener.REASON_API_ANIMATION ->
-                Toast.makeText(this, "The user tapped something on the map.", Toast.LENGTH_SHORT).show()
-            GoogleMap.OnCameraMoveStartedListener.REASON_DEVELOPER_ANIMATION ->
-                Toast.makeText(this, "The app moved the camera.", Toast.LENGTH_SHORT).show()
-        }
+//        when (reason) {
+//            GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE ->
+//                Toast.makeText(this, "The user gestured on the map.", Toast.LENGTH_SHORT).show()
+//            GoogleMap.OnCameraMoveStartedListener.REASON_API_ANIMATION ->
+//                Toast.makeText(this, "The user tapped something on the map.", Toast.LENGTH_SHORT).show()
+//            GoogleMap.OnCameraMoveStartedListener.REASON_DEVELOPER_ANIMATION ->
+//                Toast.makeText(this, "The app moved the camera.", Toast.LENGTH_SHORT).show()
+//        }
     }
 
     override fun onCameraMove() {

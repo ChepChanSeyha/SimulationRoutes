@@ -1,12 +1,13 @@
 package com.example.myapplication.Data
 
-import retrofit2.http.GET
-import retrofit2.http.Url
+import com.example.simulationroute.NewModel.GeometriesResponse
+import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET
+    @POST("api/v1/route")
     fun getRouteResponse(
-        @Url url: String
-    ): retrofit2.Call<LineResponse>
+        @Query("route") route: String
+    ): retrofit2.Call<GeometriesResponse>
 }

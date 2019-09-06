@@ -9,14 +9,18 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.os.Handler
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.myapplication.Data.LineResponse
 import com.example.myapplication.Data.RetrofitClient
+import com.example.simulationroute.NewModel.GeometriesResponse
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -29,6 +33,7 @@ import kotlinx.android.synthetic.main.fragment_home.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.Math.toDegrees
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -40,7 +45,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
-    private var marker: Marker? = null
+    private var marker1: Marker? = null
+    private var marker2: Marker? = null
 
     private var newLat: Double? = null
     private var newLng: Double? = null
@@ -48,6 +54,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var startLng: Double? = null
     private var varLat: Double? = null
     private var varLng: Double? = null
+
+    var titleMarker: Int = 1
+
+    private var listMarker = ArrayList<LatLng>()
+
+    private var isMarkerRotating: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -108,9 +120,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 val currentLocation = LatLng(location.latitude, location.longitude)
 
                 // custom marker for current location with iconMotor
-                marker = mMap.addMarker(MarkerOptions().position(currentLocation).icon(bitmapDescriptorFromVector(
-                    context!!, R.drawable.ic_no_box
-                )))
+                marker1 = mMap.addMarker(MarkerOptions().position(currentLocation).title("Me").icon(
+                    R.drawable.ic_no_box.bitmapDescriptorFromVector(
+                        context!!
+                    )
+                ))
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
             }
 
@@ -128,25 +142,30 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 newLat = data.getDoubleExtra("lat", 0.0)
                 newLng = data.getDoubleExtra("lng", 0.0)
 
-                marker = mMap.addMarker(
-                    MarkerOptions().position(
-                        LatLng(
-                            newLat!!,
-                            newLng!!
-                        )
-                    ).title("Destination")
+                val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
+                rotateMarker(marker1!!, bearing.toFloat())
+
+                // Set marker
+                marker2 = mMap.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(newLat!!, newLng!!))
+                        .title("Destination $titleMarker")
                 )
+
+                // add each LatLng to array
+                listMarker.add(LatLng(newLat!!, newLng!!))
 
                 if (newLat != null && newLng != null) {
                     if (varLat != null && varLng != null) {
                         startLng = varLng
                         startLat = varLat
-
                         drawRoute(startLat!!, startLng!!)
                     } else {
                         drawRoute(startLat!!, startLng!!)
                     }
                 }
+
+                titleMarker += 1
             }
         }
     }
@@ -154,33 +173,32 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private fun drawRoute(lat: Double, lng: Double) {
         val client = RetrofitClient()
         val call = client.getService().getRouteResponse(
-            "api/route?start_lng=$lng&start_lat=$lat&end_lng=$newLng&end_lat=$newLat&route=osrm"
+            "$lng$lat$newLng$newLat"
         )
 
         varLat = newLat!!
         varLng = newLng!!
 
-        call.enqueue(object : Callback<LineResponse> {
-            override fun onFailure(call: Call<LineResponse>, t: Throwable) {
+        call.enqueue(object : Callback<GeometriesResponse> {
+            override fun onFailure(call: Call<GeometriesResponse>, t: Throwable) {
                 Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
             }
 
-            override fun onResponse(call: Call<LineResponse>, myResponse: Response<LineResponse>) {
-                myResponse.body()?.let {
-//                    Toast.makeText(context, "Get Status Success", Toast.LENGTH_LONG).show()
-                }
+            override fun onResponse(call: Call<GeometriesResponse>, myResponse: Response<GeometriesResponse>) {
 
                 // Declare polyline object and set up color and width
                 val polylineOptions = PolylineOptions()
                 polylineOptions.color(Color.BLUE)
-                polylineOptions.width(10f)
+                polylineOptions.width(7f)
 
-                val gg = myResponse.body()?.route!![0].coordinates
+                val gg = myResponse.body()?.geometries?.route
 
-                if (gg != null)
+                if (gg != null) {
                     for (i in 0 until gg.size) {
-                        polylineOptions.add(LatLng(gg[i][0], gg[i][1]))
+                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
+                        polylineOptions.add(startToEndLatLng)
                     }
+                }
 
                 mMap.addPolyline(polylineOptions)
 
@@ -188,13 +206,24 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         })
     }
 
+    // function to custom marker to motor
+    private fun Int.bitmapDescriptorFromVector(context: Context): BitmapDescriptor? {
+        return ContextCompat.getDrawable(context, this)?.run {
+            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
+            val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
+            draw(Canvas(bitmap))
+            BitmapDescriptorFactory.fromBitmap(bitmap)
+        }
+    }
+
     private fun bearingBetweenLocations(latLng1: LatLng, latLng2: LatLng): Double {
 
-        val PI = 3.14159
-        val lat1 = latLng1.latitude * PI / 180
-        val long1 = latLng1.longitude * PI / 180
-        val lat2 = latLng2.latitude * PI / 180
-        val long2 = latLng2.longitude * PI / 180
+        val pi = 3.14159
+
+        val lat1 = latLng1.latitude * pi / 180
+        val long1 = latLng1.longitude * pi / 180
+        val lat2 = latLng2.latitude * pi / 180
+        val long2 = latLng2.longitude * pi / 180
 
         val dLon = long2 - long1
 
@@ -203,18 +232,42 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         var bearing = atan2(y, x)
 
-        bearing = Math.toDegrees(bearing)
+        bearing = toDegrees(bearing)
         bearing = (bearing + 360) % 360
 
         return bearing
     }
 
-    private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor? {
-        return ContextCompat.getDrawable(context, vectorResId)?.run {
-            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
-            val bitmap = Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)
-            draw(Canvas(bitmap))
-            BitmapDescriptorFactory.fromBitmap(bitmap)
+    private fun rotateMarker(marker: Marker, toRotation: Float) {
+        if (!isMarkerRotating) {
+            val handler = Handler()
+            val start = SystemClock.uptimeMillis()
+            val startRotation = marker.rotation
+            val duration: Long = 2000
+
+            val interpolator = LinearInterpolator()
+
+            handler.post(object : Runnable {
+                override fun run() {
+                    isMarkerRotating = true
+
+                    val elapsed = SystemClock.uptimeMillis() - start
+                    val t = interpolator.getInterpolation(elapsed.toFloat() / duration)
+
+                    val rot = t * toRotation + (1 - t) * startRotation
+
+                    val bearing = if (-rot > 180) rot / 2 else rot
+
+                    marker.rotation = bearing
+
+                    if (t < 1.0) {
+                        // Post again 16ms later.
+                        handler.postDelayed(this, 16)
+                    } else {
+                        isMarkerRotating = false
+                    }
+                }
+            })
         }
     }
 
