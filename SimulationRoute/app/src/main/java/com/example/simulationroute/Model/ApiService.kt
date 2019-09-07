@@ -1,13 +1,15 @@
-package com.example.myapplication.Data
+package com.example.simulationroute.Model
 
-import com.example.simulationroute.NewModel.GeometriesResponse
+import com.example.simulationroute.ModelNew.LatLngResponse
+import com.example.simulationroute.NewModel.ResponseLatLng
+import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.POST
-import retrofit2.http.Query
 
 interface ApiService {
 
     @POST("api/v1/route")
     fun getRouteResponse(
-        @Query("route") route: String
-    ): retrofit2.Call<GeometriesResponse>
+        @Body latLngResponse: LatLngResponse
+    ): Call<ResponseLatLng>
 }

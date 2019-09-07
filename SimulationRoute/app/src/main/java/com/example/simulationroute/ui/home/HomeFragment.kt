@@ -18,9 +18,11 @@ import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.myapplication.Data.LineResponse
-import com.example.myapplication.Data.RetrofitClient
-import com.example.simulationroute.NewModel.GeometriesResponse
+import com.example.simulationroute.Model.RetrofitClient
+import com.example.simulationroute.ModelNew.EndPoint
+import com.example.simulationroute.ModelNew.LatLngResponse
+import com.example.simulationroute.ModelNew.StartPoint
+import com.example.simulationroute.NewModel.ResponseLatLng
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -171,34 +173,37 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun drawRoute(lat: Double, lng: Double) {
+        varLat = newLat
+        varLng = newLng
+
         val client = RetrofitClient()
-        val call = client.getService().getRouteResponse(
-            "$lng$lat$newLng$newLat"
-        )
+        val latLngResponse = LatLngResponse(StartPoint(lng, lat), EndPoint(newLng, newLat))
+        val call = client.getService().getRouteResponse(latLngResponse)
 
-        varLat = newLat!!
-        varLng = newLng!!
-
-        call.enqueue(object : Callback<GeometriesResponse> {
-            override fun onFailure(call: Call<GeometriesResponse>, t: Throwable) {
+        call.enqueue(object : Callback<ResponseLatLng> {
+            override fun onFailure(call: Call<ResponseLatLng>, t: Throwable) {
                 Toast.makeText(context, "Get Status error", Toast.LENGTH_LONG).show()
             }
 
-            override fun onResponse(call: Call<GeometriesResponse>, myResponse: Response<GeometriesResponse>) {
+            override fun onResponse(call: Call<ResponseLatLng>, myResponse: Response<ResponseLatLng>) {
+                Toast.makeText(context, "Get Status yes", Toast.LENGTH_LONG).show()
 
                 // Declare polyline object and set up color and width
                 val polylineOptions = PolylineOptions()
                 polylineOptions.color(Color.BLUE)
                 polylineOptions.width(7f)
 
-                val gg = myResponse.body()?.geometries?.route
-
-                if (gg != null) {
-                    for (i in 0 until gg.size) {
-                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
-                        polylineOptions.add(startToEndLatLng)
-                    }
-                }
+//                val startPoint = myResponse.body()?.startPoint!!
+//                val endPoint = myResponse.body()?.endPoint!!
+//
+//                if (gg != null) {
+//                    for (i in 0 until gg.size) {
+//                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
+//                        polylineOptions.add(startToEndLatLng)
+//                    }
+//                }
+//
+//                polylineOptions.add(LatLng(startPoint!!, endPoint!!))
 
                 mMap.addPolyline(polylineOptions)
 
