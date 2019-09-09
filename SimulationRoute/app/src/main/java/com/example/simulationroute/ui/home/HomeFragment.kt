@@ -11,7 +11,6 @@ import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.SystemClock
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,11 +18,11 @@ import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.simulationroute.ModelNew.EndPoint
-import com.example.simulationroute.ModelNew.StartPointEndPoint
-import com.example.simulationroute.ModelNew.StartPoint
-import com.example.simulationroute.NewModel.RetrofitClient
-import com.example.simulationroute.NewModel.ResponseLatLng
+import com.example.simulationroute.Body.EndPoint
+import com.example.simulationroute.Body.StartPointEndPoint
+import com.example.simulationroute.Body.StartPoint
+import com.example.simulationroute.RetrofitApi.RetrofitClient
+import com.example.simulationroute.Response.ResponseLatLng
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -50,18 +49,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private var marker1: Marker? = null
     private var marker2: Marker? = null
-
     private var newLat: Double? = null
     private var newLng: Double? = null
     private var startLat: Double? = null
     private var startLng: Double? = null
     private var varLat: Double? = null
     private var varLng: Double? = null
-
     private var titleMarker: Int = 1
-
     private var listMarker = ArrayList<LatLng>()
-
     private var isMarkerRotating: Boolean = false
 
     override fun onCreateView(
@@ -190,11 +185,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 polylineOptions.color(Color.BLUE)
                 polylineOptions.width(7f)
 
-                val gg = myResponse.body()?.geometries?.route
+                val routeObj = myResponse.body()?.geometries?.route
 
-                if (gg != null) {
-                    for (i in gg.indices) {
-                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
+                if (routeObj != null) {
+                    for (i in routeObj.indices) {
+                        val startToEndLatLng = LatLng(routeObj[i][0], routeObj[i][1])
                         polylineOptions.add(startToEndLatLng)
                     }
                 }

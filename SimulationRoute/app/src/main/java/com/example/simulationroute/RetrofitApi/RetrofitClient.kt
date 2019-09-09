@@ -1,4 +1,4 @@
-package com.example.simulationroute.NewModel
+package com.example.simulationroute.RetrofitApi
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

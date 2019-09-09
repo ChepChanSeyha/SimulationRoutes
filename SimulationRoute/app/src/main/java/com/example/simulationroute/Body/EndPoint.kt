@@ -1,8 +1,8 @@
-package com.example.simulationroute.ModelNew
+package com.example.simulationroute.Body
 
 import com.google.gson.annotations.SerializedName
 
-data class StartPoint(
+data class EndPoint(
 
 	@field:SerializedName("lng")
 	val lng: Double? = null,

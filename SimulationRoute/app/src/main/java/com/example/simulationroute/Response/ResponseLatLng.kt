@@ -1,4 +1,4 @@
-package com.example.simulationroute.NewModel
+package com.example.simulationroute.Response
 
 import com.google.gson.annotations.SerializedName
 
