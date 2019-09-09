@@ -8,7 +8,7 @@ data class Geometries(
 	val duration: Double? = null,
 
 	@field:SerializedName("route")
-	val route: List<List<Double?>?>? = null,
+	val route: List<List<Double>>? = null,
 
 	@field:SerializedName("distance")
 	val distance: Double? = null,

@@ -8,10 +8,10 @@ data class ResponseLatLng(
 	val code: Int? = null,
 
 	@field:SerializedName("start_point")
-	val startPoint: List<Double?>? = null,
+	val startPoint: List<Double>? = null,
 
 	@field:SerializedName("end_point")
-	val endPoint: List<Double?>? = null,
+	val endPoint: List<Double>? = null,
 
 	@field:SerializedName("geometries")
 	val geometries: Geometries? = null

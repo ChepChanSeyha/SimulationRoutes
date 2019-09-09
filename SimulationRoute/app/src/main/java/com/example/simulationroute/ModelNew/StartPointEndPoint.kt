@@ -2,7 +2,7 @@ package com.example.simulationroute.ModelNew
 
 import com.google.gson.annotations.SerializedName
 
-data class LatLngResponse(
+data class StartPointEndPoint(
 
 	@field:SerializedName("start_point")
 	val startPoint: StartPoint? = null,

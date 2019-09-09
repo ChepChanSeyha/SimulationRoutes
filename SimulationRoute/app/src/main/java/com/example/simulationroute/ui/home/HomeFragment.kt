@@ -11,6 +11,7 @@ import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,10 +19,10 @@ import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.simulationroute.Model.RetrofitClient
 import com.example.simulationroute.ModelNew.EndPoint
-import com.example.simulationroute.ModelNew.LatLngResponse
+import com.example.simulationroute.ModelNew.StartPointEndPoint
 import com.example.simulationroute.ModelNew.StartPoint
+import com.example.simulationroute.NewModel.RetrofitClient
 import com.example.simulationroute.NewModel.ResponseLatLng
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -57,7 +58,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var varLat: Double? = null
     private var varLng: Double? = null
 
-    var titleMarker: Int = 1
+    private var titleMarker: Int = 1
 
     private var listMarker = ArrayList<LatLng>()
 
@@ -85,7 +86,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
         startSimulation.setOnClickListener {
-
+            val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
+            rotateMarker(marker1!!, bearing.toFloat())
         }
 
         addDestination.setOnClickListener {
@@ -144,9 +146,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 newLat = data.getDoubleExtra("lat", 0.0)
                 newLng = data.getDoubleExtra("lng", 0.0)
 
-                val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
-                rotateMarker(marker1!!, bearing.toFloat())
-
                 // Set marker
                 marker2 = mMap.addMarker(
                     MarkerOptions()
@@ -177,7 +176,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         varLng = newLng
 
         val client = RetrofitClient()
-        val latLngResponse = LatLngResponse(StartPoint(lng, lat), EndPoint(newLng, newLat))
+        val latLngResponse = StartPointEndPoint(StartPoint(lng, lat), EndPoint(newLng, newLat))
         val call = client.getService().getRouteResponse(latLngResponse)
 
         call.enqueue(object : Callback<ResponseLatLng> {
@@ -186,24 +185,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
 
             override fun onResponse(call: Call<ResponseLatLng>, myResponse: Response<ResponseLatLng>) {
-                Toast.makeText(context, "Get Status yes", Toast.LENGTH_LONG).show()
-
                 // Declare polyline object and set up color and width
                 val polylineOptions = PolylineOptions()
                 polylineOptions.color(Color.BLUE)
                 polylineOptions.width(7f)
 
-//                val startPoint = myResponse.body()?.startPoint!!
-//                val endPoint = myResponse.body()?.endPoint!!
-//
-//                if (gg != null) {
-//                    for (i in 0 until gg.size) {
-//                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
-//                        polylineOptions.add(startToEndLatLng)
-//                    }
-//                }
-//
-//                polylineOptions.add(LatLng(startPoint!!, endPoint!!))
+                val gg = myResponse.body()?.geometries?.route
+
+                if (gg != null) {
+                    for (i in gg.indices) {
+                        val startToEndLatLng = LatLng(gg[i][0], gg[i][1])
+                        polylineOptions.add(startToEndLatLng)
+                    }
+                }
 
                 mMap.addPolyline(polylineOptions)
 
