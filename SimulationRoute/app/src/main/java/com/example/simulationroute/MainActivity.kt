@@ -2,7 +2,6 @@ package com.example.simulationroute
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
@@ -19,10 +18,6 @@ import android.view.Menu
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
-import android.app.Activity
-import android.util.Log
-import android.widget.Toast
-import com.example.simulationroute.ui.home.HomeFragment
 
 
 class MainActivity : AppCompatActivity() {

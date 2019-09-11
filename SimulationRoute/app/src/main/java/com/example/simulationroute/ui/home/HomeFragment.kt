@@ -75,7 +75,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
-        buildLocationCallback()
+        createLocationRequest()
 
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         fusedLocationClient.removeLocationUpdates(locationCallback)
@@ -92,7 +92,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     }
 
-    private fun buildLocationCallback() {
+    private fun createLocationRequest() {
         locationRequest = LocationRequest()
         locationRequest.interval = 5000
         locationRequest.fastestInterval = 3000

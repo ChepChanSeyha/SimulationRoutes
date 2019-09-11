@@ -7,7 +7,7 @@ class RetrofitClient {
 
     fun getService(): ApiService {
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.10.40.29:8093/")
+            .baseUrl("http://dev.techostartup.center:9103/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
