@@ -80,7 +80,8 @@ class PinActivity : AppCompatActivity(),
     private fun getLastKnownLocation() {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
-                if (location != null) setMarker(location)
+                if (location != null)
+                    setMarker(location)
             }
     }
 

@@ -1,21 +1,26 @@
 package com.example.simulationroute.ui.home
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.simulationroute.Body.EndPoint
@@ -30,6 +35,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import retrofit2.Call
@@ -58,6 +64,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var titleMarker: Int = 1
     private var listMarker = ArrayList<LatLng>()
     private var isMarkerRotating: Boolean = false
+    private var locationUpdateState = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -75,10 +82,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
+
         createLocationRequest()
 
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+//        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
 
         startSimulation.setOnClickListener {
             val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
@@ -92,44 +100,49 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     }
 
-    private fun createLocationRequest() {
-        locationRequest = LocationRequest()
-        locationRequest.interval = 5000
-        locationRequest.fastestInterval = 3000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+        mMap.isMyLocationEnabled = true
 
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-            }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location ->
+            val currentLocation = LatLng(location.latitude, location.longitude)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
+
+            startLat = location.latitude
+            startLng = location.longitude
+
+
+            marker1 = mMap.addMarker(MarkerOptions().position(currentLocation).title("Me").icon(
+                R.drawable.ic_no_box.bitmapDescriptorFromVector(
+                    context!!
+                )
+            ))
+
         }
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
-        mMap.uiSettings.isCompassEnabled = true
-        mMap.isMyLocationEnabled = true
-
-        getLastKnownLocation()
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(context!!, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 168)
+            return
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
-    private fun getLastKnownLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                val currentLocation = LatLng(location.latitude, location.longitude)
+    private fun createLocationRequest() {
+        locationRequest = LocationRequest()
+        locationRequest.interval = 2000
+        locationRequest.fastestInterval = 1000
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
-                // custom marker for current location with iconMotor
-                marker1 = mMap.addMarker(MarkerOptions().position(currentLocation).title("Me").icon(
-                    R.drawable.ic_no_box.bitmapDescriptorFromVector(
-                        context!!
-                    )
-                ))
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+
+                val lastLocation = locationResult.lastLocation
+                val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+                marker1?.position = latLng
             }
-
-            startLat = location!!.latitude
-            startLng = location.longitude
-
         }
     }
 
@@ -163,6 +176,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 titleMarker += 1
             }
+        }
+    }
+
+    // 3
+    override fun onResume() {
+        super.onResume()
+        if (!locationUpdateState) {
+            startLocationUpdates()
         }
     }
 
