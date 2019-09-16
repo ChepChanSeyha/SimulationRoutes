@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -13,8 +12,8 @@ import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,7 +34,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.example.simulationroute.R
 import com.example.simulationroute.PinActivity
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import retrofit2.Call
@@ -65,6 +63,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var listMarker = ArrayList<LatLng>()
     private var isMarkerRotating: Boolean = false
     private var locationUpdateState = false
+    private var latLng1: LatLng? = null
+    private var latLng2: LatLng? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,13 +85,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         createLocationRequest()
 
-//        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-//        fusedLocationClient.removeLocationUpdates(locationCallback)
 
-        startSimulation.setOnClickListener {
-            val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
-            rotateMarker(marker1!!, bearing.toFloat())
-        }
+
+//        startSimulation.setOnClickListener {
+//            val bearing = bearingBetweenLocations(LatLng(startLat!!, startLng!!), LatLng(newLat!!, newLng!!))
+//            rotateMarker(marker1!!, bearing)
+//        }
 
         addDestination.setOnClickListener {
             val intent = Intent(context, PinActivity::class.java)
@@ -105,18 +104,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location ->
-            val currentLocation = LatLng(location.latitude, location.longitude)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
 
             startLat = location.latitude
             startLng = location.longitude
 
+            val currentLocation = LatLng(startLat!!, startLng!!)
 
-            marker1 = mMap.addMarker(MarkerOptions().position(currentLocation).title("Me").icon(
-                R.drawable.ic_no_box.bitmapDescriptorFromVector(
-                    context!!
-                )
-            ))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 13f))
+
+            marker1 = mMap.addMarker(MarkerOptions()
+                .position(currentLocation)
+                .title("Me")
+                .icon(R.drawable.ic_no_box.bitmapDescriptorFromVector(context!!))
+            )
 
         }
     }
@@ -131,7 +131,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun createLocationRequest() {
         locationRequest = LocationRequest()
-        locationRequest.interval = 2000
+        locationRequest.interval = 1000
         locationRequest.fastestInterval = 1000
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
@@ -139,9 +139,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
 
-                val lastLocation = locationResult.lastLocation
-                val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
-                marker1?.position = latLng
+                val lastLat = locationResult.lastLocation.latitude
+                val lastLng = locationResult.lastLocation.longitude
+
+                if (latLng1 == null) {
+                    latLng1 = LatLng(lastLat, lastLng)
+                    marker1?.position = latLng1
+                    return
+                }
+
+                latLng2 = LatLng(lastLat, lastLng)
+                marker1?.rotation = bearingBetweenLocations(latLng1!!, latLng2!!)
+                latLng1 = latLng2
+                marker1?.position = latLng2
             }
         }
     }
@@ -153,6 +163,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 newLat = data.getDoubleExtra("lat", 0.0)
                 newLng = data.getDoubleExtra("lng", 0.0)
+
 
                 // Set marker
                 marker2 = mMap.addMarker(
@@ -231,7 +242,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun bearingBetweenLocations(latLng1: LatLng, latLng2: LatLng): Double {
+    private fun bearingBetweenLocations(latLng1: LatLng, latLng2: LatLng): Float {
 
         val pi = 3.14159
 
@@ -248,9 +259,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         var bearing = atan2(y, x)
 
         bearing = toDegrees(bearing)
-        bearing = (bearing + 360) % 360
+        bearing = (bearing + 360) % 360 // count degrees counter-clockwise - remove to make clockwise
 
-        return bearing
+        return bearing.toFloat()
     }
 
     private fun rotateMarker(marker: Marker, toRotation: Float) {
