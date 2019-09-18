@@ -150,8 +150,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 latLng2 = LatLng(lastLat, lastLng)
                 marker1?.rotation = bearingBetweenLocations(latLng1!!, latLng2!!)
+
                 latLng1 = latLng2
-                marker1?.position = latLng2
+                marker1?.position = latLng2                                 //  make current location change
+                marker1?.setAnchor(0.5f, 0.5f)                              // set center for icon
+//                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng2))     //  move camera when current location move
             }
         }
     }

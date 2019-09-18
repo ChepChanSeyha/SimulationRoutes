@@ -8,7 +8,7 @@ import retrofit2.http.POST
 
 interface ApiService {
 
-    @POST("api/v1/route")
+    @POST("api/v2/route")
     fun getRouteResponse(
         @Body latLngResponse: StartPointEndPoint
     ): Call<ResponseLatLng>
